@@ -8,6 +8,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { fetchEpisodes, fetchPodcasts } from "@/services/podcastService";
 
 export default function HomePage() {
+  
   const [podcasts, setPodcasts] = useState<any[]>([]);
   const [episodes, setEpisodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,9 +69,7 @@ export default function HomePage() {
     }
   };
 
-  useEffect(() => {
-    handleSearch(""); // load default data on first render
-  }, [handleSearch]);
+
 
   return (
     <div className="relative">
