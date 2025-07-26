@@ -5,7 +5,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 
 export default function SearchBar({ onSearch }: { onSearch: (term: string) => void }) {
   const [term, setTerm] = useState("");
-  const debouncedTerm = useDebounce(term, 500);
+  const debouncedTerm = useDebounce(term, 600);
 
   useEffect(() => {
     onSearch(debouncedTerm);
