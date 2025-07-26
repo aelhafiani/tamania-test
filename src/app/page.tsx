@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import SearchBar from "@/components/SearchBar";
 import PodcastCard from "@/components/PodcastCard";
 import EpisodeRow from "@/components/EpisodeRow";
@@ -16,12 +16,34 @@ export default function HomePage() {
   const PAGE_SIZE = 20;
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("فنجان");
+  const [searchTerm, setSearchTerm] = useState(""); 
 
-  useEffect(() => {
-    handleSearch(searchTerm);
+  const handleSearch = useCallback(async (term: string) => {
+    setSearchTerm(term); // store the current search term
+    setLoading(true);
+    setError(null);
+    setEpisodes([]);
+    setOffset(0);
+    setHasMore(true);
+
+    try {
+      const podcastsData = await fetchPodcasts(term);
+      setPodcasts(podcastsData.podcasts || []);
+
+      const episodesData = await fetchEpisodes(term, PAGE_SIZE, 0);
+      setEpisodes(episodesData.episodes || []);
+
+      if (episodesData.resultCount < PAGE_SIZE) {
+        setHasMore(false);
+      }
+      setOffset(PAGE_SIZE);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load search results.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
-
   const mergeUniqueEpisodes = (prev: any[], newEpisodes: any[]) => {
     const map = new Map(prev.map((e) => [e.trackId, e]));
     newEpisodes.forEach((e) => {
@@ -31,59 +53,34 @@ export default function HomePage() {
     });
     return Array.from(map.values());
   };
-
-    const handleSearch = async (term: string) => {
-      setLoading(true);
-      setError(null);
-      setSearchTerm(term);
-      setEpisodes([]);
-      setOffset(0);
-      setHasMore(true);
-
-      try {
-        const podcastsData = await fetchPodcasts(term);
-        setPodcasts(podcastsData.podcasts || []);
-
-        const episodesData = await fetchEpisodes(term, PAGE_SIZE, 0);
-        setEpisodes(episodesData.episodes || []);
-        if (episodesData.resultCount < PAGE_SIZE) {
-          setHasMore(false);
-        }
-        setOffset(PAGE_SIZE);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load search results.");
-      } finally {
-        setLoading(false);
+  const fetchMoreEpisodes = async () => {
+    try {
+      const data = await fetchEpisodes(searchTerm, PAGE_SIZE, offset);
+      setEpisodes((prev) => mergeUniqueEpisodes(prev, data.episodes || []));
+      
+      if (data.resultCount < PAGE_SIZE) {
+        setHasMore(false);
       }
-    };
+      setOffset((prev) => prev + PAGE_SIZE);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load more episodes.");
+    }
+  };
 
-    const fetchMoreEpisodes = async () => {
-      try {
-        const data = await fetchEpisodes(searchTerm, PAGE_SIZE, offset);
-        setEpisodes((prev) => {
-          const merged = mergeUniqueEpisodes(prev, data.episodes || []);
-          if (data.resultCount < PAGE_SIZE) {
-            setHasMore(false);
-          }
-          return merged;
-        });
-        setOffset((prev) => prev + PAGE_SIZE);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load more episodes.");
-      }
-    };
+  useEffect(() => {
+    handleSearch(""); // load default data on first render
+  }, [handleSearch]);
 
   return (
     <div className="relative">
       {/* Fixed Search Bar */}
       <div className="fixed top-14 left-0 right-0 z-40 bg-[#121212] px-6 py-3 md:static md:top-auto md:px-6">
-      <SearchBar onSearch={handleSearch} />
-    </div>
-  
+        <SearchBar onSearch={handleSearch} />
+      </div>
+
       {/* Content */}
-     <div className="p-6 pt-[120px] md:pt-6"> 
+      <div className="p-6 pt-[120px] md:pt-6">
         {loading && episodes.length === 0 && (
           <p className="text-center text-blue-500">Loading...</p>
         )}
@@ -103,10 +100,10 @@ export default function HomePage() {
 
         {episodes.length > 0 && (
           <section>
-          <h2 className="text-lg sm:text-xl font-bold text-white mb-4">
-            Top episodes
-          </h2>            
-          <InfiniteScroll
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4">
+              Top episodes
+            </h2>
+            <InfiniteScroll
               dataLength={episodes.length}
               next={fetchMoreEpisodes}
               hasMore={hasMore}
