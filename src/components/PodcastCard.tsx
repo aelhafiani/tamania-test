@@ -1,4 +1,6 @@
-export default function PodcastCard({ podcast }: { podcast: any }) {
+import { ICollection } from "@/models/collection";
+
+export default function PodcastCard({ podcast }: { podcast: ICollection }) {
   return (
     <div className="bg-[#1e1e1e] p-4 rounded w-36 sm:w-44 flex-shrink-0 
       hover:scale-105 hover:shadow-lg transition-transform duration-200 cursor-pointer">

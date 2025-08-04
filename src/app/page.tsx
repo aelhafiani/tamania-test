@@ -6,11 +6,12 @@ import PodcastCard from "@/components/PodcastCard";
 import EpisodeRow from "@/components/EpisodeRow";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { fetchEpisodes, fetchPodcasts } from "@/services/podcastService";
+import { ICollection } from "@/models/collection";
 
 export default function HomePage() {
   
-  const [podcasts, setPodcasts] = useState<any[]>([]);
-  const [episodes, setEpisodes] = useState<any[]>([]);
+  const [podcasts, setPodcasts] = useState<ICollection[]>([]);
+  const [episodes, setEpisodes] = useState<ICollection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ export default function HomePage() {
       setLoading(false);
     }
   }, []);
-  const mergeUniqueEpisodes = (prev: any[], newEpisodes: any[]) => {
+  const mergeUniqueEpisodes = (prev: ICollection[], newEpisodes: ICollection[]) => {
     const map = new Map(prev.map((e) => [e.trackId, e]));
     newEpisodes.forEach((e) => {
       if (!map.has(e.trackId)) {

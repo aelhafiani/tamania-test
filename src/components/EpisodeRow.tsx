@@ -1,4 +1,6 @@
-export default function EpisodeRow({ episode }: { episode: any }) {
+import { ICollection } from "@/models/collection";
+
+export default function EpisodeRow({ episode }: { episode: ICollection }) {
   return (
     <div className="flex items-center bg-[#1e1e1e] p-3 rounded 
       hover:bg-[#2a2a2a] hover:shadow transition cursor-pointer">
